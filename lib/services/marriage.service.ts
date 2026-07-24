@@ -1,0 +1,47 @@
+import { marriageRepository } from '../repositories/marriage.repository';
+import { citizenRepository } from '../repositories/citizen.repository';
+
+export class MarriageService {
+  async declareMarriage(
+    epoux_id: number,
+    epouse_id: number,
+    officier_id: number,
+    data: { numero_acte: string; date_celebration: Date; lieu_celebration: string; regime_matrimonial: string }
+  ) {
+    // Validate citizens exist
+    const epoux = await citizenRepository.findById(epoux_id);
+    const epouse = await citizenRepository.findById(epouse_id);
+
+    if (!epoux || !epouse) {
+      throw new Error('Les citoyens spécifiés sont introuvables');
+    }
+
+    if (epoux.sexe === epouse.sexe) {
+      throw new Error('Le mariage doit être hétérosexuel selon le Code de la Famille de la RDC');
+    }
+
+    // BIGAMY CHECK
+    const activeEpouxMarriage = await marriageRepository.findActiveMarriageByCitizenId(epoux_id);
+    if (activeEpouxMarriage) {
+      throw new Error(`L'époux(se) (ID: ${epoux_id}) est déjà engagé(e) dans un mariage actif.`);
+    }
+
+    const activeEpouseMarriage = await marriageRepository.findActiveMarriageByCitizenId(epouse_id);
+    if (activeEpouseMarriage) {
+      throw new Error(`L'époux(se) (ID: ${epouse_id}) est déjà engagé(e) dans un mariage actif.`);
+    }
+
+    return marriageRepository.create({
+      ...data,
+      epoux_id,
+      epouse_id,
+      officier_id,
+    });
+  }
+
+  async getAllMarriages() {
+    return marriageRepository.findAll();
+  }
+}
+
+export const marriageService = new MarriageService();

@@ -1,0 +1,40 @@
+import { db } from '../db';
+import { Prisma } from '@prisma/client';
+
+export class MarriageRepository {
+  async findById(id: number) {
+    return db.marriage.findUnique({ 
+      where: { id },
+      include: { epoux: true, epouse: true, divorce: true }
+    });
+  }
+
+  async findAll() {
+    return db.marriage.findMany({
+      include: { epoux: true, epouse: true, divorce: true }
+    });
+  }
+
+  async findActiveMarriageByCitizenId(citizenId: number) {
+    // An active marriage is one where the citizen is either epoux or epouse,
+    // and there is NO associated divorce.
+    return db.marriage.findFirst({
+      where: {
+        OR: [
+          { epoux_id: citizenId },
+          { epouse_id: citizenId }
+        ],
+        divorce: {
+          is: null
+        }
+      },
+      include: { divorce: true }
+    });
+  }
+
+  async create(data: Prisma.MarriageUncheckedCreateInput) {
+    return db.marriage.create({ data });
+  }
+}
+
+export const marriageRepository = new MarriageRepository();

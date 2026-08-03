@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { toast } from 'sonner';
+import { Toast } from '@/lib/utils/toast';
 import { Plus, Edit, Trash2 } from 'lucide-react';
 
 interface User {
@@ -40,7 +40,7 @@ export default function UsersPage() {
       const data = await apiFetch('/users');
       setUsers(data);
     } catch (error: any) {
-      toast.error(error.message);
+      Toast.error(error.message);
     }
   };
 
@@ -56,7 +56,7 @@ export default function UsersPage() {
   const openEditModal = (user: User) => {
     setEditingId(user.id);
     setUsername(user.username);
-    setPassword(''); // password empty by default on edit unless changing
+    setPassword('');
     setRole(user.role);
     setActif(user.actif);
     setIsModalOpen(true);
@@ -71,31 +71,31 @@ export default function UsersPage() {
           method: 'PUT',
           body: JSON.stringify({ username, role, actif })
         });
-        toast.success('Utilisateur mis à jour avec succès');
+        Toast.success('Utilisateur mis a jour avec succes');
       } else {
         await apiFetch('/users', {
           method: 'POST',
           body: JSON.stringify({ username, password, role })
         });
-        toast.success('Utilisateur créé avec succès');
+        Toast.success('Utilisateur cree avec succes');
       }
       setIsModalOpen(false);
       fetchUsers();
     } catch (error: any) {
-      toast.error(error.message);
+      Toast.error(error.message);
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async (id: number) => {
-    if (!confirm('Voulez-vous vraiment désactiver cet utilisateur ?')) return;
+    if (!confirm('Voulez-vous vraiment desactiver cet utilisateur ?')) return;
     try {
       await apiFetch(`/users/${id}`, { method: 'DELETE' });
-      toast.success('Utilisateur désactivé');
+      Toast.success('Utilisateur desactive');
       fetchUsers();
     } catch (error: any) {
-      toast.error(error.message);
+      Toast.error(error.message);
     }
   };
 
@@ -103,7 +103,7 @@ export default function UsersPage() {
     { header: 'ID', accessorKey: 'id' },
     { header: "Nom d'utilisateur", accessorKey: 'username' },
     { 
-      header: 'Rôle', 
+      header: 'Role', 
       cell: (user) => (
         <span className={`px-2 py-1 rounded-full text-xs font-semibold ${user.role === 'ADMIN' ? 'bg-blue-100 text-blue-800' : 'bg-gray-100 text-gray-800'}`}>
           {user.role}
@@ -134,7 +134,7 @@ export default function UsersPage() {
       <div className="flex justify-between items-center">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">Gestion des Utilisateurs</h2>
-          <p className="text-gray-500">Gérez les accès au système (Admins et Officiers).</p>
+          <p className="text-gray-500">Gerez les acces au systeme (Admins et Officiers).</p>
         </div>
         <Button onClick={openCreateModal}>
           <Plus className="mr-2 h-4 w-4" /> Nouvel Utilisateur
@@ -149,7 +149,7 @@ export default function UsersPage() {
       />
 
       <Modal 
-        title={editingId ? "Modifier l'utilisateur" : "Créer un utilisateur"} 
+        title={editingId ? "Modifier l'utilisateur" : "Creer un utilisateur"} 
         isOpen={isModalOpen} 
         onClose={() => setIsModalOpen(false)}
       >
@@ -176,10 +176,10 @@ export default function UsersPage() {
             </div>
           )}
           <div className="space-y-2">
-            <Label htmlFor="role">Rôle</Label>
+            <Label htmlFor="role">Role</Label>
             <Select value={role} onValueChange={(val: any) => setRole(val)}>
               <SelectTrigger>
-                <SelectValue placeholder="Sélectionner un rôle" />
+                <SelectValue placeholder="Selectionner un role" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="OFFICIER">Officier de l'Etat Civil</SelectItem>

@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { toast } from 'sonner';
+import { Toast } from '@/lib/utils/toast';
 import { Plus, Printer, Edit, Trash2 } from 'lucide-react';
 import { Citizen } from '../citizens/page';
 
@@ -52,7 +52,7 @@ export default function MarriagesPage() {
       const data = await apiFetch('/marriages');
       setMarriages(data);
     } catch (error: any) {
-      toast.error(error.message);
+      Toast.error(error.message);
     }
   };
 
@@ -61,7 +61,7 @@ export default function MarriagesPage() {
       const data = await apiFetch('/citizens');
       setCitizens(data);
     } catch (error: any) {
-      toast.error("Erreur lors du chargement des citoyens");
+      Toast.error("Erreur lors du chargement des citoyens");
     }
   };
 
@@ -100,7 +100,7 @@ export default function MarriagesPage() {
           method: 'PUT',
           body: JSON.stringify(formData)
         });
-        toast.success('Mariage mis à jour avec succès');
+        Toast.success('Mariage mis à jour avec succès');
       } else {
         await apiFetch('/marriages', {
           method: 'POST',
@@ -110,12 +110,12 @@ export default function MarriagesPage() {
             epouse_id: parseInt(formData.epouse_id)
           })
         });
-        toast.success('Mariage enregistré avec succès');
+        Toast.success('Mariage enregistré avec succès');
       }
       setIsModalOpen(false);
       fetchMarriages();
     } catch (error: any) {
-      toast.error(error.message);
+      Toast.error(error.message);
     } finally {
       setLoading(false);
     }
@@ -125,10 +125,10 @@ export default function MarriagesPage() {
     if (!confirm('Voulez-vous vraiment supprimer cet acte de mariage ?')) return;
     try {
       await apiFetch(`/marriages/${id}`, { method: 'DELETE' });
-      toast.success('Mariage supprimé');
+      Toast.success('Mariage supprimé');
       fetchMarriages();
     } catch (error: any) {
-      toast.error(error.message);
+      Toast.error(error.message);
     }
   };
 

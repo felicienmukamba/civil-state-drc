@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { toast } from 'sonner';
+import { Toast } from '@/lib/utils/toast';
 import { Plus, Printer, Edit, Trash2 } from 'lucide-react';
 import { Citizen } from '../citizens/page';
 
@@ -56,7 +56,7 @@ export default function DivorcesPage() {
       const data = await apiFetch('/divorces');
       setDivorces(data);
     } catch (error: any) {
-      toast.error(error.message);
+      Toast.error(error.message);
     }
   };
 
@@ -66,7 +66,7 @@ export default function DivorcesPage() {
       // Only marriages without a divorce
       setActiveMarriages(data.filter((m: Marriage) => !m.divorce));
     } catch (error: any) {
-      toast.error("Erreur lors du chargement des mariages");
+      Toast.error("Erreur lors du chargement des mariages");
     }
   };
 
@@ -104,7 +104,7 @@ export default function DivorcesPage() {
           method: 'PUT',
           body: JSON.stringify(formData)
         });
-        toast.success('Divorce mis à jour avec succès');
+        Toast.success('Divorce mis à jour avec succès');
       } else {
         await apiFetch('/divorces', {
           method: 'POST',
@@ -113,13 +113,13 @@ export default function DivorcesPage() {
             mariage_id: parseInt(formData.mariage_id)
           })
         });
-        toast.success('Divorce enregistré avec succès');
+        Toast.success('Divorce enregistré avec succès');
       }
       setIsModalOpen(false);
       fetchDivorces();
       fetchActiveMarriages();
     } catch (error: any) {
-      toast.error(error.message);
+      Toast.error(error.message);
     } finally {
       setLoading(false);
     }
@@ -129,11 +129,11 @@ export default function DivorcesPage() {
     if (!confirm('Voulez-vous vraiment supprimer cet acte de divorce ?')) return;
     try {
       await apiFetch(`/divorces/${id}`, { method: 'DELETE' });
-      toast.success('Divorce supprimé');
+      Toast.success('Divorce supprimé');
       fetchDivorces();
       fetchActiveMarriages();
     } catch (error: any) {
-      toast.error(error.message);
+      Toast.error(error.message);
     }
   };
 

@@ -1,22 +1,29 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest } from 'next/server';
 import { userService } from '@/lib/services/user.service';
 import { authGuard } from '@/lib/middleware/auth.guard';
+import { ApiResponse } from '@/lib/utils/api-response';
+import { Validation } from '@/lib/utils/validation';
 
-export const GET = authGuard(['ADMIN'])(async (req: NextRequest) => {
+export const GET = authGuard(['ADMIN'])(async () => {
   const users = await userService.getAllUsers();
-  return NextResponse.json(users);
+  return ApiResponse.success(users);
 });
 
 export const POST = authGuard(['ADMIN'])(async (req: NextRequest) => {
   try {
-    const { username, password, role } = await req.json();
-    const newUser = await userService.createUser({ username, password_raw: password, role });
+    const data = await req.json();
+    Validation.validateRequiredFields(data, ['username', 'password']);
     
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const newUser = await userService.createUser({ 
+      username: data.username, 
+      password_raw: data.password, 
+      role: data.role 
+    });
+    
     const { password_hash, ...userWithoutPassword } = newUser;
     
-    return NextResponse.json(userWithoutPassword, { status: 201 });
+    return ApiResponse.created(userWithoutPassword);
   } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+    return ApiResponse.error(error.message);
   }
 });

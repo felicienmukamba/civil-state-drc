@@ -33,7 +33,21 @@ export class MarriageRepository {
   }
 
   async create(data: Prisma.MarriageUncheckedCreateInput) {
-    return db.marriage.create({ data });
+    const { epoux_id, epouse_id, officier_id, id, ...rest } = data;
+    return db.marriage.create({
+      data: {
+        ...rest,
+        epoux: {
+          connect: { id: epoux_id }
+        },
+        epouse: {
+          connect: { id: epouse_id }
+        },
+        officier: {
+          connect: { id: officier_id }
+        }
+      }
+    });
   }
 }
 

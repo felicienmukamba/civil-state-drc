@@ -8,7 +8,10 @@ export class MarriageService {
     officier_id: number,
     data: { numero_acte: string; date_celebration: Date; lieu_celebration: string; regime_matrimonial: string }
   ) {
-    // Validate citizens exist
+    if (!officier_id) {
+      throw new Error('Officier ID is required');
+    }
+
     const epoux = await citizenRepository.findById(epoux_id);
     const epouse = await citizenRepository.findById(epouse_id);
 
@@ -20,10 +23,9 @@ export class MarriageService {
       throw new Error('Le mariage doit être hétérosexuel selon le Code de la Famille de la RDC');
     }
 
-    // BIGAMY CHECK
     const activeEpouxMarriage = await marriageRepository.findActiveMarriageByCitizenId(epoux_id);
     if (activeEpouxMarriage) {
-      throw new Error(`L'époux(se) (ID: ${epoux_id}) est déjà engagé(e) dans un mariage actif.`);
+      throw new Error(`L'époux(se) (ID: ${epouse_id}) est déjà engagé(e) dans un mariage actif.`);
     }
 
     const activeEpouseMarriage = await marriageRepository.findActiveMarriageByCitizenId(epouse_id);

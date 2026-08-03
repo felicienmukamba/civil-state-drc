@@ -46,13 +46,12 @@ export async function login(formData: FormData) {
       maxAge: 60 * 60 * 10 // 10 hours
     })
 
+    return { success: true }
+
   } catch (error) {
     console.error('Login error:', error)
     return { error: 'Une erreur est survenue lors de la connexion.' }
   }
-
-  // Redirect on success
-  redirect('/dashboard')
 }
 
 export async function logout() {

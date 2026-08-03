@@ -16,7 +16,18 @@ export class DivorceRepository {
   }
 
   async create(data: Prisma.DivorceUncheckedCreateInput) {
-    return db.divorce.create({ data });
+    const { mariage_id, officier_id, id, ...rest } = data;
+    return db.divorce.create({
+      data: {
+        ...rest,
+        mariage: {
+          connect: { id: mariage_id }
+        },
+        officier: {
+          connect: { id: officier_id }
+        }
+      }
+    });
   }
 }
 

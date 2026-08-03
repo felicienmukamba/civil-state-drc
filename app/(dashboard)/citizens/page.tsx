@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { toast } from 'sonner';
+import { Toast } from '@/lib/utils/toast';
 import { Plus, Edit, Trash2 } from 'lucide-react';
 
 export interface Citizen {
@@ -52,7 +52,7 @@ export default function CitizensPage() {
       const data = await apiFetch('/citizens');
       setCitizens(data);
     } catch (error: any) {
-      toast.error(error.message);
+      Toast.error(error.message);
     }
   };
 
@@ -96,18 +96,18 @@ export default function CitizensPage() {
           method: 'PUT',
           body: JSON.stringify(formData)
         });
-        toast.success('Citoyen mis à jour avec succès');
+        Toast.success('Citoyen mis à jour avec succès');
       } else {
         await apiFetch('/citizens', {
           method: 'POST',
           body: JSON.stringify(formData)
         });
-        toast.success('Citoyen enregistré avec succès');
+        Toast.success('Citoyen enregistré avec succès');
       }
       setIsModalOpen(false);
       fetchCitizens();
     } catch (error: any) {
-      toast.error(error.message);
+      Toast.error(error.message);
     } finally {
       setLoading(false);
     }
@@ -117,10 +117,10 @@ export default function CitizensPage() {
     if (!confirm('Voulez-vous vraiment supprimer ce citoyen ?')) return;
     try {
       await apiFetch(`/citizens/${id}`, { method: 'DELETE' });
-      toast.success('Citoyen supprimé');
+      Toast.success('Citoyen supprimé');
       fetchCitizens();
     } catch (error: any) {
-      toast.error(error.message);
+      Toast.error(error.message);
     }
   };
 

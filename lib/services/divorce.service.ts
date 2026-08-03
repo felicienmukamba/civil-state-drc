@@ -7,6 +7,10 @@ export class DivorceService {
     officier_id: number,
     data: { numero_acte: string; date_enregistrement: Date; decision_justice_ref: string; motif: string }
   ) {
+    if (!officier_id) {
+      throw new Error('Officier ID is required');
+    }
+
     const marriage = await marriageRepository.findById(mariage_id);
     if (!marriage) {
       throw new Error('Mariage introuvable');

@@ -2,18 +2,23 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { BookOpen, FileCheck2, Gavel, History, LayoutDashboard, Menu, ShieldCheck, UserRound, Users } from 'lucide-react'
+import { usePathname, useRouter } from 'next/navigation'
+import { BookOpen, FileCheck2, Gavel, History, LayoutDashboard, Menu, ShieldCheck, UserRound, Users, Settings, LogOut } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { logout } from '@/app/actions/auth'
+import { Toast } from '@/lib/utils/toast'
 
 const navigation = [
-  { id: 'dashboard', href: '/dashboard', label: 'Vue d’ensemble', icon: LayoutDashboard },
+  { id: 'dashboard', href: '/dashboard', label: 'Vue d\'ensemble', icon: LayoutDashboard },
   { id: 'citizens', href: '/citizens', label: 'Citoyens', icon: Users },
   { id: 'marriages', href: '/marriages', label: 'Registre des mariages', icon: FileCheck2 },
   { id: 'divorces', href: '/divorces', label: 'Registre des divorces', icon: Gavel },
-  { id: 'audit', href: '/audit', label: 'Journal d’audit', icon: History, adminOnly: true },
+  { id: 'reports', href: '/reports', label: 'Rapports', icon: BookOpen },
+  { id: 'audit', href: '/audit', label: 'Journal d\'audit', icon: History, adminOnly: true },
+  { id: 'users', href: '/users', label: 'Utilisateurs', icon: Settings, adminOnly: true },
 ]
 
 function Seal() {
@@ -24,8 +29,6 @@ function Seal() {
   )
 }
 
-import { logout } from '@/app/actions/auth'
-
 function SideNav({ role, setMobileOpen }: { role: string; setMobileOpen?: (val: boolean) => void }) {
   const pathname = usePathname()
 
@@ -34,7 +37,7 @@ function SideNav({ role, setMobileOpen }: { role: string; setMobileOpen?: (val: 
       <div className="flex items-center gap-3 p-5">
         <Seal />
         <div>
-          <p className="font-serif text-sm font-bold leading-tight">État civil</p>
+          <p className="font-serif text-sm font-bold leading-tight">Etat civil</p>
           <p className="text-xs text-sidebar-foreground/60">Ville de Bukavu</p>
         </div>
       </div>
@@ -65,9 +68,19 @@ function SideNav({ role, setMobileOpen }: { role: string; setMobileOpen?: (val: 
           })}
       </nav>
       <div className="p-4">
-        <form action={logout}>
+        <Link href="/profile" className="block mb-2">
+          <Button variant="ghost" className="w-full text-xs justify-start">
+            <UserRound className="mr-2 size-4" />
+            Mon profil
+          </Button>
+        </Link>
+        <form action={async () => {
+          await logout()
+          Toast.success('Deconnexion reussie')
+        }}>
           <Button variant="outline" className="w-full text-xs">
-            Se déconnecter
+            <LogOut className="mr-2 size-4" />
+            Se deconnecter
           </Button>
         </form>
       </div>
@@ -80,10 +93,17 @@ export function DashboardLayout({
   user
 }: {
   children: React.ReactNode
-  user: { username: string; role: string }
+  user: { username: string; role: string; id: number }
 }) {
   const [mobileOpen, setMobileOpen] = useState(false)
-  const roleLabel = user.role === 'ADMIN' ? 'Administrateur' : 'Officier d’état civil'
+  const router = useRouter()
+  const roleLabel = user.role === 'ADMIN' ? 'Administrateur' : 'Officier d\'etat civil'
+
+  const handleLogout = async () => {
+    await logout()
+    Toast.success('Deconnexion reussie')
+    router.push('/login')
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -93,8 +113,10 @@ export function DashboardLayout({
       <div className="lg:pl-64">
         <header className="sticky top-0 z-10 flex h-16 items-center gap-3 border-b bg-background/95 px-4 backdrop-blur md:px-6">
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-            <SheetTrigger render={<Button variant="ghost" size="icon" className="lg:hidden" aria-label="Ouvrir la navigation" />}>
-              <Menu />
+            <SheetTrigger>
+              <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Ouvrir la navigation">
+                <Menu />
+              </Button>
             </SheetTrigger>
             <SheetContent side="left" className="w-72 p-0">
               <SheetHeader className="sr-only">
@@ -104,13 +126,33 @@ export function DashboardLayout({
             </SheetContent>
           </Sheet>
           <div className="ml-auto flex items-center gap-3">
-            <div className="hidden text-right md:block">
-              <p className="text-xs font-semibold">{user.username}</p>
-              <p className="text-[11px] text-muted-foreground">{roleLabel}</p>
-            </div>
-            <div className="flex size-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
-              <UserRound className="size-4" />
-            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger>
+                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+                  <div className="flex size-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
+                    <UserRound className="size-4" />
+                  </div>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56" align="end">
+                <DropdownMenuLabel className="font-normal">
+                  <div className="flex flex-col space-y-1">
+                    <p className="text-sm font-medium leading-none">{user.username}</p>
+                    <p className="text-xs leading-none text-muted-foreground">{roleLabel}</p>
+                  </div>
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => router.push('/profile')}>
+                  <UserRound className="mr-2 size-4" />
+                  Mon profil
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem className="cursor-pointer text-red-600" onClick={handleLogout}>
+                  <LogOut className="mr-2 size-4" />
+                  Se deconnecter
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </header>
         <main className="mx-auto max-w-7xl p-4 md:p-6 lg:p-8">{children}</main>

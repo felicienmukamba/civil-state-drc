@@ -30,6 +30,25 @@ export class DivorceService {
   async getAllDivorces() {
     return divorceRepository.findAll();
   }
+
+  async validateDivorce(id: number, actorUsername: string) {
+    const divorce = await divorceRepository.findById(id);
+    if (!divorce) throw new Error("Divorce introuvable");
+    
+    await divorceRepository.updateStatus(id, "VALIDE");
+    
+    const { db } = await import('../db');
+    await db.auditLog.create({
+      data: {
+        action: "VALIDATION",
+        entity: "Divorce",
+        summary: `Validation du divorce ${divorce.numero_acte}`,
+        actor: actorUsername
+      }
+    });
+    
+    return { success: true };
+  }
 }
 
 export const divorceService = new DivorceService();

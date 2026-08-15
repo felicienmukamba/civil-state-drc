@@ -29,6 +29,12 @@ export class DivorceRepository {
       }
     });
   }
+  async updateStatus(id: number, status: string) {
+    return db.divorce.update({
+      where: { id },
+      data: { status }
+    });
+  }
 }
 
 export const divorceRepository = new DivorceRepository();

@@ -44,6 +44,26 @@ export class MarriageService {
   async getAllMarriages() {
     return marriageRepository.findAll();
   }
+
+  async validateMarriage(id: number, actorUsername: string) {
+    const marriage = await marriageRepository.findById(id);
+    if (!marriage) throw new Error("Mariage introuvable");
+    
+    await marriageRepository.updateStatus(id, "VALIDE");
+    
+    // Import dynamique ou utiliser un service pour AuditLog
+    const { db } = await import('../db');
+    await db.auditLog.create({
+      data: {
+        action: "VALIDATION",
+        entity: "Marriage",
+        summary: `Validation du mariage ${marriage.numero_acte}`,
+        actor: actorUsername
+      }
+    });
+    
+    return { success: true };
+  }
 }
 
 export const marriageService = new MarriageService();

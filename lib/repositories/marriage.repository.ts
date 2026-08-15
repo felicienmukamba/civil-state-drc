@@ -49,6 +49,12 @@ export class MarriageRepository {
       }
     });
   }
+  async updateStatus(id: number, status: string) {
+    return db.marriage.update({
+      where: { id },
+      data: { status }
+    });
+  }
 }
 
 export const marriageRepository = new MarriageRepository();

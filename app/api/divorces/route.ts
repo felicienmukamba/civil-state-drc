@@ -3,6 +3,15 @@ import { divorceService } from '@/lib/services/divorce.service';
 import { authGuard, AuthSession } from '@/lib/middleware/auth.guard';
 import { ApiResponse } from '@/lib/utils/api-response';
 import { Validation } from '@/lib/utils/validation';
+import { z } from 'zod';
+
+const divorceSchema = z.object({
+  mariage_id: z.coerce.number().int().positive(),
+  numero_acte: z.string().min(3),
+  date_enregistrement: z.string().or(z.date()),
+  decision_justice_ref: z.string().min(2),
+  motif: z.string().min(2)
+});
 
 export const GET = authGuard(['ADMIN', 'OFFICIER'])(async () => {
   const divorces = await divorceService.getAllDivorces();
@@ -11,20 +20,25 @@ export const GET = authGuard(['ADMIN', 'OFFICIER'])(async () => {
 
 export const POST = authGuard(['OFFICIER', 'ADMIN'])(async (req: NextRequest, session: AuthSession) => {
   try {
-    const data = await req.json();
+    const rawData = await req.json();
+    const parsed = divorceSchema.safeParse(rawData);
+
+    if (!parsed.success) {
+      return ApiResponse.error('Données divorce invalides : ' + JSON.stringify(parsed.error.flatten().fieldErrors));
+    }
+
+    const data = parsed.data;
     
-    Validation.validateRequiredFields(data, ['mariage_id', 'numero_acte', 'date_enregistrement', 'decision_justice_ref', 'motif']);
-    
-    if (data.date_enregistrement) {
+    if (data.date_enregistrement && typeof data.date_enregistrement === 'string') {
       data.date_enregistrement = Validation.parseDate(data.date_enregistrement);
     }
 
     const { mariage_id, ...divorceData } = data;
 
     const divorce = await divorceService.declareDivorce(
-      Validation.validateId(mariage_id),
+      mariage_id,
       session.userId,
-      divorceData
+      divorceData as any
     );
     
     return ApiResponse.created(divorce);

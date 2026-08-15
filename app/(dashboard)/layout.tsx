@@ -10,7 +10,7 @@ export default async function Layout({ children }: { children: React.ReactNode }
   }
 
   return (
-    <DashboardLayout user={{ username: session.username, role: session.role }}>
+    <DashboardLayout user={{ username: session.username, role: session.role, id: session.id }}>
       {children}
     </DashboardLayout>
   )

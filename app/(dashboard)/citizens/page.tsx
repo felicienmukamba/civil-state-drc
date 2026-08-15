@@ -193,7 +193,7 @@ export default function CitizensPage() {
             </div>
             <div className="space-y-2">
               <Label htmlFor="sexe">Sexe</Label>
-              <Select value={formData.sexe} onValueChange={(val) => setFormData(prev => ({...prev, sexe: val}))}>
+              <Select value={formData.sexe} onValueChange={(val) => setFormData(prev => ({...prev, sexe: val as string}))}>
                 <SelectTrigger><SelectValue placeholder="Sexe" /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="M">Masculin</SelectItem>

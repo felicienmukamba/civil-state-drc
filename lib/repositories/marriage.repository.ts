@@ -5,14 +5,14 @@ export class MarriageRepository {
   async findById(id: number) {
     // using findFirst because findUnique might not allow querying non-unique fields easily without composite index if deletedAt is added, but it's fine for now if we use findFirst
     return db.marriage.findFirst({ 
-      where: { id, deletedAt: null },
+      where: { id, deletedAt: null } as any,
       include: { epoux: true, epouse: true, divorce: true }
     });
   }
 
   async findAll() {
     return db.marriage.findMany({
-      where: { deletedAt: null },
+      where: { deletedAt: null } as any,
       include: { epoux: true, epouse: true, divorce: true }
     });
   }
@@ -30,7 +30,7 @@ export class MarriageRepository {
           is: null
         },
         deletedAt: null
-      },
+      } as any,
       include: { divorce: true }
     });
   }

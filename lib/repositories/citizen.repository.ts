@@ -11,7 +11,7 @@ export class CitizenRepository {
   }
 
   async findAll() {
-    return db.citizen.findMany({ where: { deletedAt: null } });
+    return db.citizen.findMany({ where: { deletedAt: null } as any });
   }
 
   async create(data: Prisma.CitizenCreateInput) {

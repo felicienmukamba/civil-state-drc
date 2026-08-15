@@ -4,14 +4,14 @@ import { Prisma } from '@prisma/client';
 export class DivorceRepository {
   async findById(id: number) {
     return db.divorce.findFirst({ 
-      where: { id, deletedAt: null },
+      where: { id, deletedAt: null } as any,
       include: { mariage: true }
     });
   }
 
   async findAll() {
     return db.divorce.findMany({
-      where: { deletedAt: null },
+      where: { deletedAt: null } as any,
       include: { mariage: true }
     });
   }

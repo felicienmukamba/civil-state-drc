@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
 
     const result = await authService.login(data.username, data.password);
     return ApiResponse.success(result);
-  } catch (error: any) {
-    return ApiResponse.error(error.message, 401);
+  } catch (error: unknown) {
+    return ApiResponse.error((error instanceof Error ? error.message : String(error)), 401);
   }
 }

@@ -17,7 +17,7 @@ export const POST = authGuard(['ADMIN', 'OFFICIER_SUPERIEUR'])(async (
     await divorceService.validateDivorce(id, session.username);
     
     return ApiResponse.success({ message: "Divorce validé avec succès" });
-  } catch (error: any) {
-    return ApiResponse.error(error.message);
+  } catch (error: unknown) {
+    return ApiResponse.error((error instanceof Error ? error.message : String(error)));
   }
 });

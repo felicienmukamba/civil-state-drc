@@ -13,7 +13,7 @@ export const GET = authGuard(['ADMIN', 'OFFICIER'])(async (req: NextRequest) => 
     });
     
     return NextResponse.json(logs);
-  } catch (error: any) {
-    return NextResponse.json({ error: error.message }, { status: 400 });
+  } catch (error: unknown) {
+    return NextResponse.json({ error: (error instanceof Error ? error.message : String(error)) }, { status: 400 });
   }
 });

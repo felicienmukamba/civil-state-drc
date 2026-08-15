@@ -32,7 +32,7 @@ export const PUT = authGuard(['ADMIN', 'OFFICIER'])(async (req: NextRequest, ses
     await userRepository.update(session.userId, { password_hash });
 
     return ApiResponse.success({ message: 'Mot de passe changé avec succès' });
-  } catch (error: any) {
-    return ApiResponse.error(error.message);
+  } catch (error: unknown) {
+    return ApiResponse.error((error instanceof Error ? error.message : String(error)));
   }
 });

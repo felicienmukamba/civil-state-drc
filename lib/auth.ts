@@ -1,6 +1,9 @@
 import { cookies } from 'next/headers'
 import jwt from 'jsonwebtoken'
 
+if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
+  console.warn('WARNING: JWT_SECRET is not defined in production environment. Using fallback key is highly insecure.');
+}
 const secretKey = process.env.JWT_SECRET || 'super-secret-key-for-dev'
 
 export async function encrypt(payload: any) {

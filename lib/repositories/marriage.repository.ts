@@ -3,14 +3,16 @@ import { Prisma } from '@prisma/client';
 
 export class MarriageRepository {
   async findById(id: number) {
-    return db.marriage.findUnique({ 
-      where: { id },
+    // using findFirst because findUnique might not allow querying non-unique fields easily without composite index if deletedAt is added, but it's fine for now if we use findFirst
+    return db.marriage.findFirst({ 
+      where: { id, deletedAt: null },
       include: { epoux: true, epouse: true, divorce: true }
     });
   }
 
   async findAll() {
     return db.marriage.findMany({
+      where: { deletedAt: null },
       include: { epoux: true, epouse: true, divorce: true }
     });
   }
@@ -26,7 +28,8 @@ export class MarriageRepository {
         ],
         divorce: {
           is: null
-        }
+        },
+        deletedAt: null
       },
       include: { divorce: true }
     });
@@ -53,6 +56,13 @@ export class MarriageRepository {
     return db.marriage.update({
       where: { id },
       data: { status }
+    });
+  }
+
+  async softDelete(id: number) {
+    return db.marriage.update({
+      where: { id },
+      data: { deletedAt: new Date() } as any,
     });
   }
 }

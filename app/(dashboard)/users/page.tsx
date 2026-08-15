@@ -39,8 +39,8 @@ export default function UsersPage() {
     try {
       const data = await apiFetch('/users');
       setUsers(data);
-    } catch (error: any) {
-      Toast.error(error.message);
+    } catch (error: unknown) {
+      Toast.error((error instanceof Error ? error.message : String(error)));
     }
   };
 
@@ -81,8 +81,8 @@ export default function UsersPage() {
       }
       setIsModalOpen(false);
       fetchUsers();
-    } catch (error: any) {
-      Toast.error(error.message);
+    } catch (error: unknown) {
+      Toast.error((error instanceof Error ? error.message : String(error)));
     } finally {
       setLoading(false);
     }
@@ -94,8 +94,8 @@ export default function UsersPage() {
       await apiFetch(`/users/${id}`, { method: 'DELETE' });
       Toast.success('Utilisateur desactive');
       fetchUsers();
-    } catch (error: any) {
-      Toast.error(error.message);
+    } catch (error: unknown) {
+      Toast.error((error instanceof Error ? error.message : String(error)));
     }
   };
 

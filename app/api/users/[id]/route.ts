@@ -9,8 +9,8 @@ export const DELETE = authGuard(['ADMIN'])(async (req: NextRequest, session, par
     const id = Validation.validateId(params?.params?.id || '');
     await userRepository.softDelete(id);
     return ApiResponse.success({ success: true });
-  } catch (error: any) {
-    return ApiResponse.error(error.message);
+  } catch (error: unknown) {
+    return ApiResponse.error((error instanceof Error ? error.message : String(error)));
   }
 });
 
@@ -26,7 +26,7 @@ export const PUT = authGuard(['ADMIN'])(async (req: NextRequest, session, params
     });
     
     return ApiResponse.success(updated);
-  } catch (error: any) {
-    return ApiResponse.error(error.message);
+  } catch (error: unknown) {
+    return ApiResponse.error((error instanceof Error ? error.message : String(error)));
   }
 });

@@ -55,8 +55,8 @@ export default function DivorcesPage() {
     try {
       const data = await apiFetch('/divorces');
       setDivorces(data);
-    } catch (error: any) {
-      Toast.error(error.message);
+    } catch (error: unknown) {
+      Toast.error((error instanceof Error ? error.message : String(error)));
     }
   };
 
@@ -65,7 +65,7 @@ export default function DivorcesPage() {
       const data = await apiFetch('/marriages');
       // Only marriages without a divorce
       setActiveMarriages(data.filter((m: Marriage) => !m.divorce));
-    } catch (error: any) {
+    } catch (error: unknown) {
       Toast.error("Erreur lors du chargement des mariages");
     }
   };
@@ -118,8 +118,8 @@ export default function DivorcesPage() {
       setIsModalOpen(false);
       fetchDivorces();
       fetchActiveMarriages();
-    } catch (error: any) {
-      Toast.error(error.message);
+    } catch (error: unknown) {
+      Toast.error((error instanceof Error ? error.message : String(error)));
     } finally {
       setLoading(false);
     }
@@ -132,8 +132,8 @@ export default function DivorcesPage() {
       Toast.success('Divorce supprimé');
       fetchDivorces();
       fetchActiveMarriages();
-    } catch (error: any) {
-      Toast.error(error.message);
+    } catch (error: unknown) {
+      Toast.error((error instanceof Error ? error.message : String(error)));
     }
   };
 

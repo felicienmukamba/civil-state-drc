@@ -13,8 +13,8 @@ export const GET = authGuard(['ADMIN', 'OFFICIER'])(async (req: NextRequest, ses
     
     const { password_hash, ...userWithoutPassword } = user;
     return ApiResponse.success(userWithoutPassword);
-  } catch (error: any) {
-    return ApiResponse.error(error.message);
+  } catch (error: unknown) {
+    return ApiResponse.error((error instanceof Error ? error.message : String(error)));
   }
 });
 
@@ -28,7 +28,7 @@ export const PUT = authGuard(['ADMIN', 'OFFICIER'])(async (req: NextRequest, ses
     
     const { password_hash, ...userWithoutPassword } = updated;
     return ApiResponse.success(userWithoutPassword);
-  } catch (error: any) {
-    return ApiResponse.error(error.message);
+  } catch (error: unknown) {
+    return ApiResponse.error((error instanceof Error ? error.message : String(error)));
   }
 });

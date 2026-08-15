@@ -38,7 +38,7 @@ export const POST = authGuard(['ADMIN'])(async (req: NextRequest) => {
     
     const citizen = await citizenService.registerCitizen(data as any);
     return ApiResponse.created(citizen);
-  } catch (error: any) {
-    return ApiResponse.error(error.message);
+  } catch (error: unknown) {
+    return ApiResponse.error((error instanceof Error ? error.message : String(error)));
   }
 });

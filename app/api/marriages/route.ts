@@ -44,7 +44,7 @@ export const POST = authGuard(['OFFICIER', 'ADMIN'])(async (req: NextRequest, se
     );
     
     return ApiResponse.created(marriage);
-  } catch (error: any) {
-    return ApiResponse.error(error.message);
+  } catch (error: unknown) {
+    return ApiResponse.error((error instanceof Error ? error.message : String(error)));
   }
 });

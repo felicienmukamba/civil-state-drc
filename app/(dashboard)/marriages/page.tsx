@@ -51,8 +51,8 @@ export default function MarriagesPage() {
     try {
       const data = await apiFetch('/marriages');
       setMarriages(data);
-    } catch (error: any) {
-      Toast.error(error.message);
+    } catch (error: unknown) {
+      Toast.error((error instanceof Error ? error.message : String(error)));
     }
   };
 
@@ -60,7 +60,7 @@ export default function MarriagesPage() {
     try {
       const data = await apiFetch('/citizens');
       setCitizens(data);
-    } catch (error: any) {
+    } catch (error: unknown) {
       Toast.error("Erreur lors du chargement des citoyens");
     }
   };
@@ -114,8 +114,8 @@ export default function MarriagesPage() {
       }
       setIsModalOpen(false);
       fetchMarriages();
-    } catch (error: any) {
-      Toast.error(error.message);
+    } catch (error: unknown) {
+      Toast.error((error instanceof Error ? error.message : String(error)));
     } finally {
       setLoading(false);
     }
@@ -127,8 +127,8 @@ export default function MarriagesPage() {
       await apiFetch(`/marriages/${id}`, { method: 'DELETE' });
       Toast.success('Mariage supprimé');
       fetchMarriages();
-    } catch (error: any) {
-      Toast.error(error.message);
+    } catch (error: unknown) {
+      Toast.error((error instanceof Error ? error.message : String(error)));
     }
   };
 

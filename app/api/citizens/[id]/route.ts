@@ -16,8 +16,8 @@ export const PUT = authGuard(['ADMIN', 'OFFICIER'])(async (req: NextRequest, ses
     
     const updated = await citizenRepository.update(id, data);
     return ApiResponse.success(updated);
-  } catch (error: any) {
-    return ApiResponse.error(error.message);
+  } catch (error: unknown) {
+    return ApiResponse.error((error instanceof Error ? error.message : String(error)));
   }
 });
 
@@ -37,7 +37,7 @@ export const DELETE = authGuard(['ADMIN'])(async (req: NextRequest, session, par
     });
 
     return ApiResponse.success({ success: true });
-  } catch (error: any) {
-    return ApiResponse.error(error.message);
+  } catch (error: unknown) {
+    return ApiResponse.error((error instanceof Error ? error.message : String(error)));
   }
 });

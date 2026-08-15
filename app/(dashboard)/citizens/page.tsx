@@ -51,8 +51,8 @@ export default function CitizensPage() {
     try {
       const data = await apiFetch('/citizens');
       setCitizens(data);
-    } catch (error: any) {
-      Toast.error(error.message);
+    } catch (error: unknown) {
+      Toast.error((error instanceof Error ? error.message : String(error)));
     }
   };
 
@@ -106,8 +106,8 @@ export default function CitizensPage() {
       }
       setIsModalOpen(false);
       fetchCitizens();
-    } catch (error: any) {
-      Toast.error(error.message);
+    } catch (error: unknown) {
+      Toast.error((error instanceof Error ? error.message : String(error)));
     } finally {
       setLoading(false);
     }
@@ -119,8 +119,8 @@ export default function CitizensPage() {
       await apiFetch(`/citizens/${id}`, { method: 'DELETE' });
       Toast.success('Citoyen supprimé');
       fetchCitizens();
-    } catch (error: any) {
-      Toast.error(error.message);
+    } catch (error: unknown) {
+      Toast.error((error instanceof Error ? error.message : String(error)));
     }
   };
 

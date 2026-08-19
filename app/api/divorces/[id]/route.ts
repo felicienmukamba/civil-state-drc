@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
 import { db } from '@/lib/db';
+import { divorceRepository } from '@/lib/repositories/divorce.repository';
 import { authGuard } from '@/lib/middleware/auth.guard';
 import { ApiResponse } from '@/lib/utils/api-response';
 import { Validation } from '@/lib/utils/validation';
@@ -8,6 +9,16 @@ export const PUT = authGuard(['OFFICIER', 'ADMIN'])(async (req: NextRequest, ses
   try {
     const id = Validation.validateId(params?.params?.id || '');
     const data = await req.json();
+    
+    // Check if divorce exists and is not already validated
+    const existingDivorce = await db.divorce.findUnique({ where: { id } });
+    if (!existingDivorce) {
+      return ApiResponse.notFound('Divorce introuvable');
+    }
+    
+    if (existingDivorce.status === 'VALIDE') {
+      return ApiResponse.error('Impossible de modifier un divorce déjà validé', 403);
+    }
     
     if (data.date_enregistrement) {
       data.date_enregistrement = Validation.parseDate(data.date_enregistrement);
@@ -33,7 +44,7 @@ export const DELETE = authGuard(['ADMIN'])(async (req: NextRequest, session, par
   try {
     const id = Validation.validateId(params?.params?.id || '');
     
-    await db.divorce.delete({ where: { id } });
+    await divorceRepository.softDelete(id);
     
     await db.auditLog.create({
       data: {

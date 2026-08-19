@@ -26,6 +26,7 @@ interface Divorce {
   date_enregistrement: string;
   decision_justice_ref: string;
   motif: string;
+  status: string;
   mariage_id: number;
   mariage: Marriage;
 }
@@ -156,8 +157,14 @@ export default function DivorcesPage() {
       header: 'Actions',
       cell: (d) => (
         <div className="flex space-x-2">
-          <Button variant="ghost" size="icon" onClick={() => openEditModal(d)}>
-            <Edit className="h-4 w-4 text-blue-500" />
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => openEditModal(d)}
+            disabled={d.status === 'VALIDE'}
+            title={d.status === 'VALIDE' ? 'Impossible de modifier un acte validé' : 'Modifier'}
+          >
+            <Edit className={`h-4 w-4 ${d.status === 'VALIDE' ? 'text-gray-400' : 'text-blue-500'}`} />
           </Button>
           <Button variant="ghost" size="icon" onClick={() => handleDelete(d.id)}>
             <Trash2 className="h-4 w-4 text-red-500" />
@@ -221,7 +228,14 @@ export default function DivorcesPage() {
 
           <div className="space-y-2">
             <Label htmlFor="date_enregistrement">Date d'enregistrement</Label>
-            <Input id="date_enregistrement" type="date" value={formData.date_enregistrement} onChange={handleChange} required />
+            <Input 
+              id="date_enregistrement" 
+              type="date" 
+              value={formData.date_enregistrement} 
+              onChange={handleChange} 
+              required 
+              max={new Date().toISOString().split('T')[0]}
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="decision_justice_ref">Référence Décision de Justice</Label>

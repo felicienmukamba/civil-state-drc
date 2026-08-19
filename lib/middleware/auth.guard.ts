@@ -1,15 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
 import jwt from 'jsonwebtoken';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'super-secret-key-for-dev';
+import { getSecretKey } from '../utils/jwt';
 
 export interface AuthSession {
   userId: number;
   username: string;
-  role: 'ADMIN' | 'OFFICIER' | 'OFFICIER_SUPERIEUR';
+  role: 'ADMIN' | 'OFFICIER';
 }
 
-export function authGuard(roles?: ('ADMIN' | 'OFFICIER' | 'OFFICIER_SUPERIEUR')[]) {
+export function authGuard(roles?: ('ADMIN' | 'OFFICIER')[]) {
   return (handler: (req: NextRequest, session: AuthSession, params?: any) => Promise<NextResponse>) => {
     return async (req: NextRequest, context?: any) => {
       const token = req.cookies.get('session')?.value;
@@ -19,7 +18,7 @@ export function authGuard(roles?: ('ADMIN' | 'OFFICIER' | 'OFFICIER_SUPERIEUR')[
       }
 
       try {
-        const decoded = jwt.verify(token, JWT_SECRET) as AuthSession;
+        const decoded = jwt.verify(token, getSecretKey()) as AuthSession;
         
         if (roles && roles.length > 0 && !roles.includes(decoded.role)) {
           return NextResponse.json({ error: 'Accès interdit' }, { status: 403 });

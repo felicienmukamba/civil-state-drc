@@ -1,18 +1,14 @@
 import { cookies } from 'next/headers'
 import jwt from 'jsonwebtoken'
-
-if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
-  console.warn('WARNING: JWT_SECRET is not defined in production environment. Using fallback key is highly insecure.');
-}
-const secretKey = process.env.JWT_SECRET || 'super-secret-key-for-dev'
+import { getSecretKey } from './utils/jwt'
 
 export async function encrypt(payload: any) {
-  return jwt.sign(payload, secretKey, { expiresIn: '10h' })
+  return jwt.sign(payload, getSecretKey(), { expiresIn: '10h' })
 }
 
 export async function decrypt(token: string): Promise<any> {
   try {
-    return jwt.verify(token, secretKey)
+    return jwt.verify(token, getSecretKey())
   } catch (err) {
     return null
   }

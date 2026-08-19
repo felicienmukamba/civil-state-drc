@@ -1,5 +1,6 @@
 import { divorceRepository } from '../repositories/divorce.repository';
 import { marriageRepository } from '../repositories/marriage.repository';
+import { db } from '../db';
 
 export class DivorceService {
   async declareDivorce(
@@ -35,16 +36,21 @@ export class DivorceService {
     const divorce = await divorceRepository.findById(id);
     if (!divorce) throw new Error("Divorce introuvable");
     
-    await divorceRepository.updateStatus(id, "VALIDE");
-    
-    const { db } = await import('../db');
-    await db.auditLog.create({
-      data: {
-        action: "VALIDATION",
-        entity: "Divorce",
-        summary: `Validation du divorce ${divorce.numero_acte}`,
-        actor: actorUsername
-      }
+    // Use transaction to ensure both operations succeed or fail together
+    await db.$transaction(async (tx) => {
+      await tx.divorce.update({
+        where: { id },
+        data: { status: "VALIDE" }
+      });
+      
+      await tx.auditLog.create({
+        data: {
+          action: "VALIDATION",
+          entity: "Divorce",
+          summary: `Validation du divorce ${divorce.numero_acte}`,
+          actor: actorUsername
+        }
+      });
     });
     
     return { success: true };

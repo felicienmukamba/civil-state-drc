@@ -1,5 +1,6 @@
 import { NextRequest } from 'next/server';
 import { db } from '@/lib/db';
+import { marriageRepository } from '@/lib/repositories/marriage.repository';
 import { authGuard } from '@/lib/middleware/auth.guard';
 import { ApiResponse } from '@/lib/utils/api-response';
 import { Validation } from '@/lib/utils/validation';
@@ -8,6 +9,16 @@ export const PUT = authGuard(['OFFICIER', 'ADMIN'])(async (req: NextRequest, ses
   try {
     const id = Validation.validateId(params?.params?.id || '');
     const data = await req.json();
+    
+    // Check if marriage exists and is not already validated
+    const existingMarriage = await db.marriage.findUnique({ where: { id } });
+    if (!existingMarriage) {
+      return ApiResponse.notFound('Mariage introuvable');
+    }
+    
+    if (existingMarriage.status === 'VALIDE') {
+      return ApiResponse.error('Impossible de modifier un mariage déjà validé', 403);
+    }
     
     if (data.date_celebration) {
       data.date_celebration = Validation.parseDate(data.date_celebration);
@@ -33,7 +44,7 @@ export const DELETE = authGuard(['ADMIN'])(async (req: NextRequest, session, par
   try {
     const id = Validation.validateId(params?.params?.id || '');
     
-    await db.marriage.delete({ where: { id } });
+    await marriageRepository.softDelete(id);
     
     await db.auditLog.create({
       data: {

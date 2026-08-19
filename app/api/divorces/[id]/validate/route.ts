@@ -3,7 +3,7 @@ import { divorceService } from '@/lib/services/divorce.service';
 import { authGuard, AuthSession } from '@/lib/middleware/auth.guard';
 import { ApiResponse } from '@/lib/utils/api-response';
 
-export const POST = authGuard(['ADMIN', 'OFFICIER_SUPERIEUR'])(async (
+export const POST = authGuard(['ADMIN', 'OFFICIER'])(async (
   req: NextRequest, 
   session: AuthSession, 
   context?: { params: { id: string } }

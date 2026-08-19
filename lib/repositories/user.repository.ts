@@ -3,16 +3,16 @@ import { Prisma } from '@prisma/client';
 
 export class UserRepository {
   async findById(id: number) {
-    return db.user.findFirst({ where: { id, actif: true, deletedAt: null } as any });
+    return db.user.findFirst({ where: { id, actif: true, deletedAt: null } });
   }
 
   async findByUsername(username: string) {
-    return db.user.findFirst({ where: { username, actif: true, deletedAt: null } as any });
+    return db.user.findFirst({ where: { username, actif: true, deletedAt: null } });
   }
 
   async findAll() {
     return db.user.findMany({
-      where: { actif: true, deletedAt: null } as any,
+      where: { actif: true, deletedAt: null },
       select: {
         id: true,
         username: true,
@@ -34,7 +34,7 @@ export class UserRepository {
   async softDelete(id: number) {
     return db.user.update({
       where: { id },
-      data: { actif: false, deletedAt: new Date() } as any,
+      data: { actif: false, deletedAt: new Date() },
     });
   }
 }

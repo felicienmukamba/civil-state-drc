@@ -4,14 +4,14 @@ import { Prisma } from '@prisma/client';
 export class DivorceRepository {
   async findById(id: number) {
     return db.divorce.findFirst({ 
-      where: { id, deletedAt: null } as any,
+      where: { id, deletedAt: null },
       include: { mariage: true }
     });
   }
 
   async findAll() {
     return db.divorce.findMany({
-      where: { deletedAt: null } as any,
+      where: { deletedAt: null },
       include: { mariage: true }
     });
   }
@@ -40,7 +40,7 @@ export class DivorceRepository {
   async softDelete(id: number) {
     return db.divorce.update({
       where: { id },
-      data: { deletedAt: new Date() } as any,
+      data: { deletedAt: new Date() },
     });
   }
 }

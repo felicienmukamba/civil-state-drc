@@ -76,7 +76,12 @@ export function CreateCitizenForm() {
           </div>
           <div className="space-y-2">
             <Label htmlFor="date_naissance">Date de naissance</Label>
-            <Input id="date_naissance" type="date" {...register("date_naissance")} />
+            <Input 
+              id="date_naissance" 
+              type="date" 
+              {...register("date_naissance")} 
+              max={new Date().toISOString().split('T')[0]}
+            />
             {errors.date_naissance && <p className="text-red-500 text-sm">{errors.date_naissance.message}</p>}
           </div>
           <div className="space-y-2">

@@ -48,8 +48,12 @@ export async function login(formData: FormData) {
 
     return { success: true }
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('Login error:', error)
+    // Handle rate limiting error from API
+    if (error?.message?.includes('Trop de tentatives')) {
+      return { error: error.message }
+    }
     return { error: 'Une erreur est survenue lors de la connexion.' }
   }
 }

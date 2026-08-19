@@ -1,5 +1,6 @@
 import { marriageRepository } from '../repositories/marriage.repository';
 import { citizenRepository } from '../repositories/citizen.repository';
+import { db } from '../db';
 
 export class MarriageService {
   async declareMarriage(
@@ -23,21 +24,81 @@ export class MarriageService {
       throw new Error('Le mariage doit être hétérosexuel selon le Code de la Famille de la RDC');
     }
 
-    const activeEpouxMarriage = await marriageRepository.findActiveMarriageByCitizenId(epoux_id);
-    if (activeEpouxMarriage) {
-      throw new Error(`L'époux(se) (ID: ${epouse_id}) est déjà engagé(e) dans un mariage actif.`);
+    // Validate minimum age (18 years according to DRC Family Code)
+    const MINIMUM_AGE = 18;
+    const calculateAge = (birthDate: Date) => {
+      const today = new Date();
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+      return age;
+    };
+
+    const epouxAge = calculateAge(epoux.date_naissance);
+    const epouseAge = calculateAge(epouse.date_naissance);
+
+    if (epouxAge < MINIMUM_AGE) {
+      throw new Error(`L'époux doit avoir au moins ${MINIMUM_AGE} ans (âge actuel: ${epouxAge})`);
     }
 
-    const activeEpouseMarriage = await marriageRepository.findActiveMarriageByCitizenId(epouse_id);
-    if (activeEpouseMarriage) {
-      throw new Error(`L'époux(se) (ID: ${epouse_id}) est déjà engagé(e) dans un mariage actif.`);
+    if (epouseAge < MINIMUM_AGE) {
+      throw new Error(`L'épouse doit avoir au moins ${MINIMUM_AGE} ans (âge actuel: ${epouseAge})`);
     }
 
-    return marriageRepository.create({
-      ...data,
-      epoux_id,
-      epouse_id,
-      officier_id,
+    // Use transaction to prevent race conditions in bigamy check
+    return db.$transaction(async (tx) => {
+      // Check for active marriages within transaction for atomicity
+      const activeEpouxMarriage = await tx.marriage.findFirst({
+        where: {
+          OR: [
+            { epoux_id: epoux_id },
+            { epouse_id: epoux_id }
+          ],
+          divorce: {
+            is: null
+          },
+          deletedAt: null
+        }
+      });
+
+      if (activeEpouxMarriage) {
+        throw new Error(`L'époux(se) (ID: ${epoux_id}) est déjà engagé(e) dans un mariage actif.`);
+      }
+
+      const activeEpouseMarriage = await tx.marriage.findFirst({
+        where: {
+          OR: [
+            { epoux_id: epouse_id },
+            { epouse_id: epouse_id }
+          ],
+          divorce: {
+            is: null
+          },
+          deletedAt: null
+        }
+      });
+
+      if (activeEpouseMarriage) {
+        throw new Error(`L'époux(se) (ID: ${epouse_id}) est déjà engagé(e) dans un mariage actif.`);
+      }
+
+      // Create marriage within same transaction
+      return tx.marriage.create({
+        data: {
+          ...data,
+          epoux: {
+            connect: { id: epoux_id }
+          },
+          epouse: {
+            connect: { id: epouse_id }
+          },
+          officier: {
+            connect: { id: officier_id }
+          }
+        }
+      });
     });
   }
 
@@ -49,17 +110,21 @@ export class MarriageService {
     const marriage = await marriageRepository.findById(id);
     if (!marriage) throw new Error("Mariage introuvable");
     
-    await marriageRepository.updateStatus(id, "VALIDE");
-    
-    // Import dynamique ou utiliser un service pour AuditLog
-    const { db } = await import('../db');
-    await db.auditLog.create({
-      data: {
-        action: "VALIDATION",
-        entity: "Marriage",
-        summary: `Validation du mariage ${marriage.numero_acte}`,
-        actor: actorUsername
-      }
+    // Use transaction to ensure both operations succeed or fail together
+    await db.$transaction(async (tx) => {
+      await tx.marriage.update({
+        where: { id },
+        data: { status: "VALIDE" }
+      });
+      
+      await tx.auditLog.create({
+        data: {
+          action: "VALIDATION",
+          entity: "Marriage",
+          summary: `Validation du mariage ${marriage.numero_acte}`,
+          actor: actorUsername
+        }
+      });
     });
     
     return { success: true };

@@ -18,6 +18,7 @@ interface Marriage {
   date_celebration: string;
   lieu_celebration: string;
   regime_matrimonial: string;
+  status: string;
   epoux: Citizen;
   epouse: Citizen;
   divorce: any;
@@ -158,8 +159,14 @@ export default function MarriagesPage() {
       header: 'Actions',
       cell: (m) => (
         <div className="flex space-x-2">
-          <Button variant="ghost" size="icon" onClick={() => openEditModal(m)}>
-            <Edit className="h-4 w-4 text-blue-500" />
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={() => openEditModal(m)}
+            disabled={m.status === 'VALIDE'}
+            title={m.status === 'VALIDE' ? 'Impossible de modifier un acte validé' : 'Modifier'}
+          >
+            <Edit className={`h-4 w-4 ${m.status === 'VALIDE' ? 'text-gray-400' : 'text-blue-500'}`} />
           </Button>
           <Button variant="ghost" size="icon" onClick={() => handleDelete(m.id)}>
             <Trash2 className="h-4 w-4 text-red-500" />
@@ -233,7 +240,14 @@ export default function MarriagesPage() {
 
           <div className="space-y-2">
             <Label htmlFor="date_celebration">Date de célébration</Label>
-            <Input id="date_celebration" type="date" value={formData.date_celebration} onChange={handleChange} required />
+            <Input 
+              id="date_celebration" 
+              type="date" 
+              value={formData.date_celebration} 
+              onChange={handleChange} 
+              required 
+              max={new Date().toISOString().split('T')[0]}
+            />
           </div>
           <div className="space-y-2">
             <Label htmlFor="lieu_celebration">Lieu de célébration</Label>

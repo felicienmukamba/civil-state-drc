@@ -99,4 +99,3 @@ model AuditLog {
   actor     String
   createdAt DateTime @default(now())
 }
-

@@ -25,7 +25,7 @@ export const DELETE = authGuard(['ADMIN'])(async (req: NextRequest, session, par
   try {
     const id = Validation.validateId(params?.params?.id || '');
     
-    await db.citizen.delete({ where: { id } });
+    await citizenRepository.softDelete(id);
     
     await db.auditLog.create({
       data: {

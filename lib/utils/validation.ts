@@ -19,6 +19,14 @@ export class Validation {
     if (isNaN(date.getTime())) {
       throw new Error('Date invalide');
     }
+    
+    // Prevent future dates for past events (birth dates, celebration dates, etc.)
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Reset time to start of day for fair comparison
+    if (date > today) {
+      throw new Error('Les dates futures ne sont pas autorisées');
+    }
+    
     return date;
   }
 }

@@ -1,8 +1,7 @@
 import { userRepository } from '../repositories/user.repository';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-
-const JWT_SECRET = process.env.NEXTAUTH_SECRET || 'fallback_secret';
+import { getSecretKey } from '../utils/jwt';
 
 export class AuthService {
   async login(username: string, password_raw: string) {
@@ -18,7 +17,7 @@ export class AuthService {
 
     const token = jwt.sign(
       { userId: user.id, username: user.username, role: user.role },
-      JWT_SECRET,
+      getSecretKey(),
       { expiresIn: '8h' }
     );
 

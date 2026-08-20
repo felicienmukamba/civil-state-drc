@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Toast } from '@/lib/utils/toast';
-import { Plus, Printer, Edit, Trash2 } from 'lucide-react';
+import { Plus, Printer, Edit, Trash2, Download, Check } from 'lucide-react';
 import { Citizen } from '../citizens/page';
 
 interface Marriage {
@@ -133,6 +133,47 @@ export default function MarriagesPage() {
     }
   };
 
+  const handleDownloadCertificate = async (id: number, numeroActe: string) => {
+    try {
+      const response = await fetch(`/api/marriages/${id}/certificate`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Erreur lors de la génération du certificat');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `certificat-mariage-${numeroActe}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      Toast.success('Certificat téléchargé avec succès');
+    } catch (error: unknown) {
+      Toast.error((error instanceof Error ? error.message : String(error)));
+    }
+  };
+
+  const handleValidate = async (id: number) => {
+    if (!confirm('Voulez-vous vraiment valider ce mariage ? Cette action est irréversible.')) return;
+    try {
+      await apiFetch(`/marriages/${id}/validate`, { method: 'POST' });
+      Toast.success('Mariage validé avec succès');
+      fetchMarriages();
+    } catch (error: unknown) {
+      Toast.error((error instanceof Error ? error.message : String(error)));
+    }
+  };
+
   const columns: Column<Marriage>[] = [
     { header: 'N° Acte', accessorKey: 'numero_acte' },
     { 
@@ -150,9 +191,16 @@ export default function MarriagesPage() {
     { 
       header: 'Statut', 
       cell: (m) => (
-        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${m.divorce ? 'bg-red-100 text-red-800' : 'bg-green-100 text-green-800'}`}>
-          {m.divorce ? 'Divorcé' : 'Actif'}
-        </span>
+        <div className="flex items-center space-x-2">
+          <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+            m.status === 'VALIDE' ? 'bg-green-100 text-green-800' : 
+            m.status === 'DIVORCE' ? 'bg-red-100 text-red-800' : 
+            'bg-yellow-100 text-yellow-800'
+          }`}>
+            {m.status === 'VALIDE' ? 'Validé' : m.status === 'DIVORCE' ? 'Divorcé' : 'Brouillon'}
+          </span>
+          {m.divorce && <span className="text-xs text-gray-500">(Divorcé)</span>}
+        </div>
       )
     },
     {
@@ -171,8 +219,26 @@ export default function MarriagesPage() {
           <Button variant="ghost" size="icon" onClick={() => handleDelete(m.id)}>
             <Trash2 className="h-4 w-4 text-red-500" />
           </Button>
-          <Button variant="ghost" size="sm" onClick={() => window.print()}>
-            <Printer className="h-4 w-4 mr-1" /> Imprimer
+          {m.status !== 'VALIDE' && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => handleValidate(m.id)}
+              title="Valider le mariage"
+            >
+              <Check className="h-4 w-4 mr-1 text-green-500" /> 
+              Valider
+            </Button>
+          )}
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => handleDownloadCertificate(m.id, m.numero_acte)}
+            disabled={m.status !== 'VALIDE'}
+            title={m.status !== 'VALIDE' ? 'Le mariage doit être validé pour générer un certificat' : 'Télécharger le certificat'}
+          >
+            <Download className={`h-4 w-4 mr-1 ${m.status !== 'VALIDE' ? 'text-gray-400' : 'text-green-500'}`} /> 
+            Certificat
           </Button>
         </div>
       )

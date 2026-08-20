@@ -18,13 +18,22 @@ export function authGuard(roles?: ('ADMIN' | 'OFFICIER')[]) {
       }
 
       try {
-        const decoded = jwt.verify(token, getSecretKey()) as AuthSession;
+        const decoded = jwt.verify(token, getSecretKey()) as any;
         
-        if (roles && roles.length > 0 && !roles.includes(decoded.role)) {
+        // Map token payload (id) to session interface (userId)
+        const session: AuthSession = {
+          userId: decoded.id || decoded.userId,
+          username: decoded.username,
+          role: decoded.role
+        };
+        
+        if (roles && roles.length > 0 && !roles.includes(session.role)) {
           return NextResponse.json({ error: 'Accès interdit' }, { status: 403 });
         }
 
-        return await handler(req, decoded, context);
+        // Extract params from context for Next.js 15+ 
+        const params = context?.params;
+        return await handler(req, session, params);
       } catch (error) {
         return NextResponse.json({ error: 'Token invalide' }, { status: 401 });
       }

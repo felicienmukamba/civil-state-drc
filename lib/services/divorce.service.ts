@@ -38,16 +38,24 @@ export class DivorceService {
     
     // Use transaction to ensure both operations succeed or fail together
     await db.$transaction(async (tx) => {
+      // Update divorce status
       await tx.divorce.update({
         where: { id },
         data: { status: "VALIDE" }
       });
       
+      // Update marriage status to reflect divorce
+      await tx.marriage.update({
+        where: { id: divorce.mariage_id },
+        data: { status: "DIVORCE" }
+      });
+      
+      // Create audit log
       await tx.auditLog.create({
         data: {
           action: "VALIDATION",
           entity: "Divorce",
-          summary: `Validation du divorce ${divorce.numero_acte}`,
+          summary: `Validation du divorce ${divorce.numero_acte} - Mariage ${divorce.mariage?.numero_acte || divorce.mariage_id}`,
           actor: actorUsername
         }
       });

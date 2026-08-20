@@ -1,39 +1,71 @@
-import { db } from '@/lib/db'
+"use client";
+
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Users, FileCheck2, Gavel, ShieldCheck, TrendingUp, Calendar, MapPin, Activity } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { apiFetch } from '@/lib/api-client';
 
-export default async function ReportsPage() {
-  const [citizens, marriages, divorces, users, activeMarriages] = await Promise.all([
-    db.citizen.findMany(),
-    db.marriage.findMany({
-      include: {
-        epoux: true,
-        epouse: true,
-        divorce: true
+interface Citizen {
+  id: number;
+  sexe: string;
+}
+
+interface Marriage {
+  id: number;
+  date_celebration: string;
+  divorce: any;
+}
+
+interface Divorce {
+  id: number;
+  date_enregistrement: string;
+}
+
+interface User {
+  id: number;
+  role: string;
+}
+
+export default function ReportsPage() {
+  const [citizens, setCitizens] = useState<Citizen[]>([]);
+  const [marriages, setMarriages] = useState<Marriage[]>([]);
+  const [divorces, setDivorces] = useState<Divorce[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [activeMarriages, setActiveMarriages] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [citizensData, marriagesData, divorcesData, usersData] = await Promise.all([
+          apiFetch('/citizens'),
+          apiFetch('/marriages'),
+          apiFetch('/divorces'),
+          apiFetch('/users')
+        ]);
+
+        setCitizens(citizensData || []);
+        setMarriages(marriagesData || []);
+        setDivorces(divorcesData || []);
+        setUsers(usersData?.filter((u: User) => u.actif !== false) || []);
+        
+        // Calculate active marriages (marriages without divorce)
+        const activeMarriageCount = marriagesData?.filter((m: Marriage) => !m.divorce).length || 0;
+        setActiveMarriages(activeMarriageCount);
+      } catch (error) {
+        console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false);
       }
-    }),
-    db.divorce.findMany({
-      include: {
-        mariage: {
-          include: {
-            epoux: true,
-            epouse: true
-          }
-        }
-      }
-    }),
-    db.user.findMany({
-      where: { actif: true }
-    }),
-    db.marriage.count({
-      where: {
-        divorce: {
-          is: null
-        }
-      }
-    })
-  ])
+    };
+
+    fetchData();
+  }, []);
+
+  if (loading) {
+    return <div className="flex items-center justify-center h-64">Chargement...</div>;
+  }
 
   // Calculate statistics
   const maleCount = citizens.filter(c => c.sexe === 'M').length

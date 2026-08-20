@@ -11,8 +11,8 @@ function Sheet({ ...props }: SheetPrimitive.Root.Props) {
   return <SheetPrimitive.Root data-slot="sheet" {...props} />
 }
 
-function SheetTrigger({ ...props }: SheetPrimitive.Trigger.Props) {
-  return <SheetPrimitive.Trigger data-slot="sheet-trigger" {...props} />
+function SheetTrigger({ nativeButton = false, ...props }: SheetPrimitive.Trigger.Props & { nativeButton?: boolean }) {
+  return <SheetPrimitive.Trigger data-slot="sheet-trigger" nativeButton={nativeButton} {...props} />
 }
 
 function SheetClose({ ...props }: SheetPrimitive.Close.Props) {
@@ -62,16 +62,14 @@ function SheetContent({
         {showCloseButton && (
           <SheetPrimitive.Close
             data-slot="sheet-close"
-            render={
-              <Button
-                variant="ghost"
-                className="absolute top-3 right-3"
-                size="icon-sm"
-              />
-            }
+            className="absolute top-3 right-3"
           >
-            <XIcon
-            />
+            <Button
+              variant="ghost"
+              size="icon-sm"
+            >
+              <XIcon />
+            </Button>
             <span className="sr-only">Close</span>
           </SheetPrimitive.Close>
         )}

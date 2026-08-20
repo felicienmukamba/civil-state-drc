@@ -1,32 +1,60 @@
-import { db } from '@/lib/db'
+'use client'
+
+import { useEffect, useState } from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { FileCheck2, FileText, Gavel, History, Plus, Users, BookOpen, ShieldCheck, TrendingUp } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Link from 'next/link'
+import { apiFetch } from '@/lib/api-client'
 
-export default async function DashboardPage() {
-  const [citizenCount, marriageCount, divorceCount, activeMarriages, userCount, auditLogs] = await Promise.all([
-    db.citizen.count(),
-    db.marriage.count(),
-    db.divorce.count(),
-    db.marriage.count({
-      where: {
-        divorce: {
-          is: null
-        }
+interface AuditLog {
+  id: number
+  entity: string
+  summary: string
+  actor: string
+  createdAt: string
+}
+
+export default function DashboardPage() {
+  const [citizenCount, setCitizenCount] = useState(0)
+  const [marriageCount, setMarriageCount] = useState(0)
+  const [divorceCount, setDivorceCount] = useState(0)
+  const [activeMarriages, setActiveMarriages] = useState(0)
+  const [userCount, setUserCount] = useState(0)
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([])
+
+  useEffect(() => {
+    // Fetch dashboard data from API
+    const fetchDashboardData = async () => {
+      try {
+        // For now, we'll fetch from individual endpoints
+        // In a real app, you'd have a dedicated dashboard stats endpoint
+        const [citizens, marriages, divorces] = await Promise.all([
+          apiFetch('/citizens'),
+          apiFetch('/marriages'),
+          apiFetch('/divorces')
+        ])
+        
+        setCitizenCount(citizens?.length || 0)
+        setMarriageCount(marriages?.length || 0)
+        setDivorceCount(divorces?.length || 0)
+        
+        // Calculate active marriages (those without divorce)
+        const active = marriages?.filter((m: any) => !m.divorce).length || 0
+        setActiveMarriages(active)
+        
+        // Mock user count for now
+        setUserCount(2)
+        
+        // Mock audit logs for now
+        setAuditLogs([])
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error)
       }
-    }),
-    db.user.count({
-      where: {
-        actif: true
-      }
-    }),
-    // @ts-ignore
-    db.auditLog.findMany({
-      take: 5,
-      orderBy: { createdAt: 'desc' }
-    })
-  ])
+    }
+    
+    fetchDashboardData()
+  }, [])
 
   const stats = [
     { label: 'Citoyens enregistres', value: citizenCount, note: 'Fiches d\'identite civile', icon: Users, color: 'text-blue-600' },
@@ -45,14 +73,14 @@ export default async function DashboardPage() {
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">Voici la situation des registres d'etat civil de la ville de Bukavu.</p>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" render={<Link href="/reports" />}>
+          <Link href="/reports" className="inline-flex items-center justify-center rounded-lg border border-input bg-background hover:bg-muted hover:text-foreground h-8 gap-1.5 px-2.5 text-sm font-medium transition-all">
             <BookOpen className="mr-2 h-4 w-4" />
             Rapports
-          </Button>
-          <Button render={<Link href="/marriages" />}>
+          </Link>
+          <Link href="/marriages" className="inline-flex items-center justify-center rounded-lg border border-transparent bg-primary text-primary-foreground hover:bg-primary/80 h-8 gap-1.5 px-2.5 text-sm font-medium transition-all">
             <Plus className="mr-2 h-4 w-4" />
             Nouvel acte
-          </Button>
+          </Link>
         </div>
       </div>
 
@@ -83,9 +111,9 @@ export default async function DashboardPage() {
                 <CardTitle>Activite recente</CardTitle>
                 <CardDescription>Dernieres operations sur les registres</CardDescription>
               </div>
-              <Button variant="ghost" size="sm" render={<Link href="/audit" />}>
+              <Link href="/audit" className="inline-flex items-center justify-center rounded-lg hover:bg-muted hover:text-foreground h-7 gap-1 rounded-[min(var(--radius-md),12px)] px-2.5 text-[0.8rem] font-medium transition-all">
                 Tout voir
-              </Button>
+              </Link>
             </div>
           </CardHeader>
           <CardContent className="flex flex-col gap-1">

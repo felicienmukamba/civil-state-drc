@@ -29,7 +29,7 @@ function Seal() {
   )
 }
 
-function SideNav({ role, setMobileOpen }: { role: string; setMobileOpen?: (val: boolean) => void }) {
+function SideNav({ role, setMobileOpen, onLogout }: { role: string; setMobileOpen?: (val: boolean) => void; onLogout: () => void }) {
   const pathname = usePathname()
 
   return (
@@ -68,21 +68,21 @@ function SideNav({ role, setMobileOpen }: { role: string; setMobileOpen?: (val: 
           })}
       </nav>
       <div className="p-4">
-        <Link href="/profile" className="block mb-2">
-          <Button variant="ghost" className="w-full text-xs justify-start">
-            <UserRound className="mr-2 size-4" />
-            Mon profil
-          </Button>
+        <Link 
+          href="/profile" 
+          className="block mb-2 flex items-center gap-2 rounded-lg px-2.5 py-2 text-xs font-medium hover:bg-muted hover:text-foreground transition-colors"
+        >
+          <UserRound className="size-4" />
+          Mon profil
         </Link>
-        <form action={async () => {
-          await logout()
-          Toast.success('Deconnexion reussie')
-        }}>
-          <Button variant="outline" className="w-full text-xs">
-            <LogOut className="mr-2 size-4" />
-            Se deconnecter
-          </Button>
-        </form>
+        <Button 
+          variant="outline" 
+          className="w-full text-xs text-red-600 hover:text-red-700 hover:bg-red-50"
+          onClick={onLogout}
+        >
+          <LogOut className="mr-2 size-4" />
+          Se deconnecter
+        </Button>
       </div>
     </div>
   )
@@ -108,27 +108,28 @@ export function DashboardLayout({
   return (
     <div className="min-h-screen bg-background">
       <aside className="fixed inset-y-0 left-0 hidden w-64 border-r lg:block">
-        <SideNav role={user.role} />
+        <SideNav role={user.role} onLogout={handleLogout} />
       </aside>
       <div className="lg:pl-64">
         <header className="sticky top-0 z-10 flex h-16 items-center gap-3 border-b bg-background/95 px-4 backdrop-blur md:px-6">
           <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
-            <SheetTrigger>
-              <Button variant="ghost" size="icon" className="lg:hidden" aria-label="Ouvrir la navigation">
-                <Menu />
-              </Button>
+            <SheetTrigger 
+              className="lg:hidden inline-flex items-center justify-center rounded-lg hover:bg-muted hover:text-foreground size-8 gap-1.5 transition-all"
+              aria-label="Ouvrir la navigation"
+            >
+              <Menu />
             </SheetTrigger>
             <SheetContent side="left" className="w-72 p-0">
               <SheetHeader className="sr-only">
                 <SheetTitle>Navigation</SheetTitle>
               </SheetHeader>
-              <SideNav role={user.role} setMobileOpen={setMobileOpen} />
+              <SideNav role={user.role} setMobileOpen={setMobileOpen} onLogout={handleLogout} />
             </SheetContent>
           </Sheet>
           <div className="ml-auto flex items-center gap-3">
             <DropdownMenu>
-              <DropdownMenuTrigger>
-                <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" className="relative h-8 w-8 rounded-full p-0" aria-label="Menu utilisateur">
                   <div className="flex size-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
                     <UserRound className="size-4" />
                   </div>

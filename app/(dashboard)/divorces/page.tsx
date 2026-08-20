@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Toast } from '@/lib/utils/toast';
-import { Plus, Printer, Edit, Trash2 } from 'lucide-react';
+import { Plus, Printer, Edit, Trash2, Download, Check } from 'lucide-react';
 import { Citizen } from '../citizens/page';
 
 interface Marriage {
@@ -138,6 +138,48 @@ export default function DivorcesPage() {
     }
   };
 
+  const handleDownloadCertificate = async (id: number, numeroActe: string) => {
+    try {
+      const response = await fetch(`/api/divorces/${id}/certificate`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Erreur lors de la génération du certificat');
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `certificat-divorce-${numeroActe}.pdf`;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+      
+      Toast.success('Certificat téléchargé avec succès');
+    } catch (error: unknown) {
+      Toast.error((error instanceof Error ? error.message : String(error)));
+    }
+  };
+
+  const handleValidate = async (id: number) => {
+    if (!confirm('Voulez-vous vraiment valider ce divorce ? Cette action est irréversible.')) return;
+    try {
+      await apiFetch(`/divorces/${id}/validate`, { method: 'POST' });
+      Toast.success('Divorce validé avec succès');
+      fetchDivorces();
+      fetchActiveMarriages();
+    } catch (error: unknown) {
+      Toast.error((error instanceof Error ? error.message : String(error)));
+    }
+  };
+
   const columns: Column<Divorce>[] = [
     { header: 'N° Acte', accessorKey: 'numero_acte' },
     { 
@@ -154,6 +196,16 @@ export default function DivorcesPage() {
     },
     { header: 'Réf. Justice', accessorKey: 'decision_justice_ref' },
     {
+      header: 'Statut',
+      cell: (d) => (
+        <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
+          d.status === 'VALIDE' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'
+        }`}>
+          {d.status === 'VALIDE' ? 'Validé' : 'Brouillon'}
+        </span>
+      )
+    },
+    {
       header: 'Actions',
       cell: (d) => (
         <div className="flex space-x-2">
@@ -169,8 +221,26 @@ export default function DivorcesPage() {
           <Button variant="ghost" size="icon" onClick={() => handleDelete(d.id)}>
             <Trash2 className="h-4 w-4 text-red-500" />
           </Button>
-          <Button variant="ghost" size="sm" onClick={() => window.print()}>
-            <Printer className="h-4 w-4 mr-1" /> Imprimer
+          {d.status !== 'VALIDE' && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => handleValidate(d.id)}
+              title="Valider le divorce"
+            >
+              <Check className="h-4 w-4 mr-1 text-green-500" /> 
+              Valider
+            </Button>
+          )}
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => handleDownloadCertificate(d.id, d.numero_acte)}
+            disabled={d.status !== 'VALIDE'}
+            title={d.status !== 'VALIDE' ? 'Le divorce doit être validé pour générer un certificat' : 'Télécharger le certificat'}
+          >
+            <Download className={`h-4 w-4 mr-1 ${d.status !== 'VALIDE' ? 'text-gray-400' : 'text-green-500'}`} /> 
+            Certificat
           </Button>
         </div>
       )

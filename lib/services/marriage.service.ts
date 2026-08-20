@@ -121,7 +121,7 @@ export class MarriageService {
         data: {
           action: "VALIDATION",
           entity: "Marriage",
-          summary: `Validation du mariage ${marriage.numero_acte}`,
+          summary: `Validation du mariage ${marriage.numero_acte} - ${marriage.epoux?.nom} ${marriage.epoux?.prenom} & ${marriage.epouse?.nom} ${marriage.epouse?.prenom}`,
           actor: actorUsername
         }
       });

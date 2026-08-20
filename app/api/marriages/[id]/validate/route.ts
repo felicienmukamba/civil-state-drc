@@ -6,15 +6,16 @@ import { ApiResponse } from '@/lib/utils/api-response';
 export const POST = authGuard(['ADMIN', 'OFFICIER'])(async (
   req: NextRequest, 
   session: AuthSession, 
-  context?: { params: { id: string } }
+  params?: Promise<{ id: string }>
 ) => {
   try {
-    const id = parseInt(context?.params?.id || '');
-    if (isNaN(id)) {
+    const { id } = await (params || Promise.resolve({ id: '' }));
+    const validatedId = parseInt(id, 10);
+    if (isNaN(validatedId)) {
       return ApiResponse.error("ID invalide", 400);
     }
     
-    await marriageService.validateMarriage(id, session.username);
+    await marriageService.validateMarriage(validatedId, session.username);
     
     return ApiResponse.success({ message: "Mariage validé avec succès" });
   } catch (error: unknown) {

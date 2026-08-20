@@ -5,13 +5,14 @@ import { authGuard } from '@/lib/middleware/auth.guard';
 import { ApiResponse } from '@/lib/utils/api-response';
 import { Validation } from '@/lib/utils/validation';
 
-export const PUT = authGuard(['OFFICIER', 'ADMIN'])(async (req: NextRequest, session, params?: { params: { id: string } }) => {
+export const PUT = authGuard(['OFFICIER', 'ADMIN'])(async (req: NextRequest, session, params?: Promise<{ id: string }>) => {
   try {
-    const id = Validation.validateId(params?.params?.id || '');
+    const { id } = await (params || Promise.resolve({ id: '' }));
+    const validatedId = Validation.validateId(id);
     const data = await req.json();
     
     // Check if marriage exists and is not already validated
-    const existingMarriage = await db.marriage.findUnique({ where: { id } });
+    const existingMarriage = await db.marriage.findUnique({ where: { id: validatedId } });
     if (!existingMarriage) {
       return ApiResponse.notFound('Mariage introuvable');
     }
@@ -25,7 +26,7 @@ export const PUT = authGuard(['OFFICIER', 'ADMIN'])(async (req: NextRequest, ses
     }
     
     const updated = await db.marriage.update({
-      where: { id },
+      where: { id: validatedId },
       data: {
         numero_acte: data.numero_acte,
         date_celebration: data.date_celebration,
@@ -40,17 +41,18 @@ export const PUT = authGuard(['OFFICIER', 'ADMIN'])(async (req: NextRequest, ses
   }
 });
 
-export const DELETE = authGuard(['ADMIN'])(async (req: NextRequest, session, params?: { params: { id: string } }) => {
+export const DELETE = authGuard(['ADMIN'])(async (req: NextRequest, session, params?: Promise<{ id: string }>) => {
   try {
-    const id = Validation.validateId(params?.params?.id || '');
+    const { id } = await (params || Promise.resolve({ id: '' }));
+    const validatedId = Validation.validateId(id);
     
-    await marriageRepository.softDelete(id);
+    await marriageRepository.softDelete(validatedId);
     
     await db.auditLog.create({
       data: {
         action: 'DELETE',
         entity: 'Mariage',
-        summary: `Suppression de l'acte de mariage ID: ${id}`,
+        summary: `Suppression de l'acte de mariage ID: ${validatedId}`,
         actor: `User ${session.userId}`
       }
     });
